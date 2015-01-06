@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+    <canvas id="canvas" width="300" height="300" style="border: 1px solid black;"></canvas>
+    <script src="build/multiroids.js"></script>
+    <script src="//localhost:8082/socket.io/socket.io.js"></script>
+    <!-- script src="build/multiroids.js"></script>
+    
+    < script src="//code.jquery.com/jquery-2.1.3.min.js"></script>
+    <script src="/vendor/socket.io.js"></script -->
+    <script>
+    (function(){
+
+        var canvas = document.getElementById('canvas');
+        var ctx = canvas.getContext('2d');
+        var width = canvas.width;
+        var height = canvas.height;
+        ctx.strokeStyle = 'black';
+
+        var game = new Multiroids(ctx, 300, 300);
+
+        game.addShip(Math.floor(width / 2), Math.floor(height / 2));
+
+        window.addEventListener('keydown', function(evt){
+            evt.preventDefault();
+            var key = evt.key || evt.which;
+            game.pressed(key);
+        });
+        window.addEventListener('keyup', function(evt){
+            evt.preventDefault();
+            var key = evt.key || evt.which;
+            game.unpressed(key);
+        });
+
+        game.start();
+
+    // var foo = document.getElementById('foo');
+
+    // var socket = io.connect('//localhost:8080');
+    // $(window).keydown(function(e){
+    //     e.preventDefault();
+    //     var key = e.key || e.which;
+    //     socket.emit('message', e.which);
+    // });
+    // socket.on('message', function(msg){
+    //     var left = 0;
+    //     var top = 0;
+    //     var amnt = 3;
+    //     if (msg === 38){
+    //         top -= amnt;
+    //     }
+    //     if (msg === 39){
+    //         left += amnt;
+    //     }
+    //     if (msg === 40){
+    //         top += amnt;
+    //     }
+    //     if (msg === 37){
+    //         left -= amnt;
+    //     }
+    //     foo.style.top = parseInt(foo.style.top.replace('px', ''), 10) + top + 'px';
+    //     foo.style.left = parseInt(foo.style.left.replace('px', ''), 10) + left + 'px';
+    // });
+
+    })();
+    </script>
+</body>
+</html>
