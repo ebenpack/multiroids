@@ -7,10 +7,11 @@ var util = require('../utilities');
  * @param {number} y     y position
  * @param {number} speed speed
  */
-function Bullet(x, y, velX, velY){
+function Bullet(x, y, velX, velY, id){
     var radius = 2;
     Entity.call(this, x, y, velX, velY, radius);
     this.life = 3000;
+    this.id = id;
 }
 
 util.inherits(Bullet, Entity);

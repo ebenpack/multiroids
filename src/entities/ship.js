@@ -1,4 +1,5 @@
 var Entity = require('./entity');
+var Bullet = require('./bullet.js');
 var util = require('../utilities');
 
 var turnSpeed = 0.08;
@@ -10,7 +11,7 @@ var damping = 0.97;
  * @param {number} x x position
  * @param {number} y y position
  */
-function Ship(x, y){
+function Ship(x, y, id){
     var velX = 0;
     var velY = 0;
     var radius = 10;
@@ -18,6 +19,7 @@ function Ship(x, y){
     this.acceleration = 0;
     this.lastFired = 0;
     this.fireRate = 400;
+    this.id = id;
 }
 
 util.inherits(Ship, Entity);
@@ -34,7 +36,15 @@ Ship.prototype.engageThrusters = function engageThrusters(){
     this.velY += (Math.sin(this.angle) * accelerationAmount);
 };
 Ship.prototype.fire = function fire(){
-
+    var now = Date.now()
+    if (now - this.lastFired > this.fireRate){
+        var x = this.x + (Math.cos(this.angle) * this.radius);
+        var y = this.y + (Math.sin(this.angle) * this.radius);
+        var velX = this.velX + (Math.cos(this.angle) * Bullet.baseSpeed);
+        var velY = this.velY + (Math.sin(this.angle) * Bullet.baseSpeed);
+        this.lastFired = now;
+        return new Bullet(x, y, velX, velY, this.id);
+    }
 };
 Ship.prototype.update = function update(deltaTime){
     this.acceleration *= damping;

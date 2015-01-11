@@ -25,11 +25,15 @@ Entity.prototype.move = function move(){
 Entity.prototype.update = function update(){
     return false;
 };
+Entity.prototype.detectCollide = function detectCollide(otherEntity){
+    return (Math.pow(otherEntity.x - this.x, 2) + Math.pow(this.y - otherEntity.y, 2) <= 
+                        Math.pow(this.radius + otherEntity.radius, 2));
+};
 /**
  * Draw entity to the given context
  */
 Entity.prototype.draw = function draw(ctx){
-    ctx.moveTo(this.x, this.y);
+    ctx.moveTo(this.x + this.radius, this.y);
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
 };
 

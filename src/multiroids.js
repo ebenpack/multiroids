@@ -2,6 +2,8 @@ var Ship = require('./entities/ship');
 var Bullet = require('./entities/bullet');
 var Asteroid = require('./entities/asteroid');
 
+var Quadtree = require('quadtree');
+
 function Multiroids(ctx, width, height){
     this.ctx = ctx;
     this.width = width;
@@ -13,18 +15,20 @@ function Multiroids(ctx, width, height){
         bullets: [],
         asteroids: []
     };
+    this.qtree = new Quadtree.Quadtree(0, 0, 0, this.width, this.height);
 }
 
 Multiroids.prototype.addShip = function addShip(x, y){
-    this.entities.ships.push(new Ship(x, y));
+    this.entities.ships.push(new Ship(x, y, Date.now()));
 }
-Multiroids.prototype.addBullet = function addBullet(x, y, velX, velY){
-    this.entities.bullets.push(new Bullet(x, y, velX, velY));
+Multiroids.prototype.addBullet = function addBullet(bullet){
+    this.entities.bullets.push(bullet);
 }
 Multiroids.prototype.addAsteroid = function addAsteroid(){
     this.entities.asteroids.push(new Asteroid(0, 0));
 }
 Multiroids.prototype.update = function update(){
+    this.qtree.clear();
     this.ctx.clearRect(0, 0, 300, 300)
     var now = Date.now()
     var deltaTime =  now - this.lastUpdate;
@@ -32,11 +36,33 @@ Multiroids.prototype.update = function update(){
     var entities = this.entities;
     this.handleEvents();
     this.ctx.beginPath();
+    // Build quadtree
+    for (var entity in this.entities){
+        if (entities.hasOwnProperty(entity)){
+            for (var i = entities[entity].length - 1; i >= 0; i--){
+                this.qtree.insert(entities[entity][i]);
+            }
+        }
+    }
+    // Update and check for collisions
     for (var entity in this.entities){
         if (entities.hasOwnProperty(entity)){
             for (var i = entities[entity].length - 1; i >= 0; i--){
                 var currentEntity = entities[entity][i];
                 var destruct = currentEntity.update(deltaTime);
+                if (!destruct){
+                    var possible_collides = this.qtree.retrieve(currentEntity);
+                    for (var k = 0; k < possible_collides.length; k++){
+                         var otherEntity = possible_collides[k];
+                         if ((currentEntity !== otherEntity) &&
+                            (currentEntity.id !== otherEntity.id) && 
+                            (currentEntity.detectCollide(otherEntity))){
+                            console.log('collide');
+                            currentEntity.collide = true;
+                            otherEntity.collide = true;
+                         }
+                     }
+                }
                 if (destruct){
                     entities[entity].splice(i, 1);
                 } else {
@@ -74,13 +100,9 @@ Multiroids.prototype.handleEvents = function handleEvents(){
         ship.turnRight();
     }
     if (this.keys[32]){
-        if (now - ship.lastFired > ship.fireRate){
-            var x = ship.x + (Math.cos(ship.angle) * ship.radius);
-            var y = ship.y + (Math.sin(ship.angle) * ship.radius);
-            var velX = ship.velX + (Math.cos(ship.angle) * Bullet.baseSpeed);
-            var velY = ship.velY + (Math.sin(ship.angle) * Bullet.baseSpeed);
-            this.addBullet(x, y, velX, velY);
-            ship.lastFired = now;
+        var bullet = ship.fire();
+        if (bullet){
+            this.addBullet(bullet);
         }
     }
 };
