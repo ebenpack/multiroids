@@ -15,7 +15,7 @@ gulp.task('build-multiroids', function() {
     gulp.src('./src/multiroids.js')
         .pipe(browserify({
           standalone: 'Multiroids',
-          debug : !gulp.env.production
+          debug : false
         }))
         .pipe(gulp.dest('./build'));
 });
