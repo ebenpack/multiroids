@@ -7,12 +7,17 @@ var util = require('../utilities');
  * @param {number} y y position
  */
 function Asteroid(x, y){
-    var velX = util.randRange(5, 10);
-    var velY = util.randRange(5, 10);
-    var radius = util.randRange(6, 8);
+    var velX = util.randRange(0.1, 0.8);
+    var velY = util.randRange(0.1, 0.8);
+    var radius = util.randRange(10, 14);
     Entity.call(this, x, y, velX, velY, radius);
+    this.id = 'asteroid';
 }
-
 util.inherits(Asteroid, Entity);
+
+
+Asteroid.prototype.update = function update(){
+    this.move();
+};
 
 module.exports = Asteroid;
