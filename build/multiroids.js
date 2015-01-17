@@ -101,16 +101,28 @@ var util = _dereq_('../utilities');
  * @param {number} y y position
  */
 function Asteroid(x, y){
-    var velX = util.randRange(5, 10);
-    var velY = util.randRange(5, 10);
-    var radius = util.randRange(6, 8);
+    var velX = util.randRange(0.1, 0.8);
+    var velY = util.randRange(0.1, 0.8);
+    var radius = util.randRange(10, 14);
     Entity.call(this, x, y, velX, velY, radius);
+    this.id = 'asteroid';
+    this.health = 10;
 }
-
 util.inherits(Asteroid, Entity);
 
+
+Asteroid.prototype.update = function update(){
+    this.move();
+    return this.destruct;
+};
+Asteroid.prototype.collide = function collide(otherEntity){
+    this.health -= 2;
+    if (this.health <= 0){
+        this.destruct = true;
+    }
+};
 module.exports = Asteroid;
-},{"../utilities":7,"./entity":4}],3:[function(_dereq_,module,exports){
+},{"../utilities":8,"./entity":4}],3:[function(_dereq_,module,exports){
 var Entity = _dereq_('./entity');
 var util = _dereq_('../utilities');
 
@@ -134,15 +146,14 @@ Bullet.baseSpeed = 1;
 Bullet.prototype.update = function update(timeDelta){
     this.move();
     this.life -= timeDelta;
-    if (this.life < 0){
-        return true;
-    } else {
-        return false;
+    if (this.life <= 0){
+        this.destruct = true;
     }
+    return this.destruct;
 }
 
 module.exports = Bullet;
-},{"../utilities":7,"./entity":4}],4:[function(_dereq_,module,exports){
+},{"../utilities":8,"./entity":4}],4:[function(_dereq_,module,exports){
 /**
  * Game entity
  * @param {number} x     x position
@@ -156,6 +167,7 @@ function Entity(x, y, velX, velY, radius){
     this.velY = velY;
     this.radius = radius;
     this.angle = 0;
+    this.destruct = false;
 }
 /**
  * Move entity
@@ -168,11 +180,14 @@ Entity.prototype.move = function move(){
  * Update entity
  */
 Entity.prototype.update = function update(){
-    return false;
+    return this.destruct;
 };
 Entity.prototype.detectCollide = function detectCollide(otherEntity){
     return (Math.pow(otherEntity.x - this.x, 2) + Math.pow(this.y - otherEntity.y, 2) <= 
                         Math.pow(this.radius + otherEntity.radius, 2));
+};
+Entity.prototype.collide = function collide(otherEntity){
+    this.destruct = true;
 };
 /**
  * Draw entity to the given context
@@ -186,6 +201,7 @@ module.exports = Entity;
 },{}],5:[function(_dereq_,module,exports){
 var Entity = _dereq_('./entity');
 var Bullet = _dereq_('./bullet.js');
+var EventHandler = _dereq_('../events/events.js');
 var util = _dereq_('../utilities');
 
 var turnSpeed = 0.08;
@@ -206,6 +222,8 @@ function Ship(x, y, id){
     this.lastFired = 0;
     this.fireRate = 400;
     this.id = id;
+    this.score = 0;
+    this.evnt = new EventHandler();
 }
 
 util.inherits(Ship, Entity);
@@ -232,6 +250,10 @@ Ship.prototype.fire = function fire(){
         return new Bullet(x, y, velX, velY, this.id);
     }
 };
+Ship.prototype.collide = function(){
+    this.score -= 1;
+    this.evnt.fire('collide');
+}
 Ship.prototype.update = function update(deltaTime){
     this.acceleration *= damping;
     this.velX *= damping;
@@ -239,7 +261,6 @@ Ship.prototype.update = function update(deltaTime){
     this.x = this.x + this.velX;
     this.y = this.y + this.velY;
     return false;
-    // If hit, destruct
 };
 Ship.prototype.draw = function draw(ctx){
     var x = this.x;
@@ -263,12 +284,63 @@ Ship.prototype.draw = function draw(ctx){
 };
 
 module.exports = Ship;
-},{"../utilities":7,"./bullet.js":3,"./entity":4}],6:[function(_dereq_,module,exports){
+},{"../events/events.js":6,"../utilities":8,"./bullet.js":3,"./entity":4}],6:[function(_dereq_,module,exports){
+function EventHandler(){
+    this.events = {};
+}
+EventHandler.prototype.on = function(evts, fn, args){
+    var eventArray = evts.split(' ');
+    for (var i = 0, len = eventArray.length; i < len; i++){
+        var e = eventArray[i];
+        if (typeof this.events[e] === 'undefined'){
+            this.events[e] = [];
+        }
+        this.events[e].push([fn, args]);
+    }
+};
+EventHandler.prototype.fire = function(evts){
+    // Build array of events to fire
+    var eventArray = [];
+    var tmpArray1 = evts.split(' ');
+    for (var i = 0; i < tmpArray1.length; i++){
+        var e = tmpArray1[i];
+        while (e){
+            eventArray.push(e);
+            var index = e.lastIndexOf('.');
+            if (index > 0){
+                eventArray.push(e.substr(index + 1));
+                e = e.substring(0, index);
+            } else {
+                break;
+            }
+        }
+    }
+    // Fire events
+    for (var i = 0; i < eventArray.length; i++){
+        var current = this.events[eventArray[i]];
+        if (typeof current !== 'undefined'){
+            for (var j = 0, len = current.length; j < len; j++){
+                var evt = current[j];
+                var args = evt[2] ? evt[2] : [];
+                args.unshift({name: eventArray[i]});
+                evt[0].apply(evt[1], args);
+            }
+        }
+    }
+};
+
+module.exports = EventHandler;
+},{}],7:[function(_dereq_,module,exports){
 var Ship = _dereq_('./entities/ship');
 var Bullet = _dereq_('./entities/bullet');
 var Asteroid = _dereq_('./entities/asteroid');
+var randRange = _dereq_('./utilities').randRange;
 
 var Quadtree = _dereq_('quadtree');
+
+// TODO: move to config file
+var asteroidSpawnRate = 3000;
+var maxAsteroids = 1;
 
 function Multiroids(ctx, width, height){
     this.ctx = ctx;
@@ -281,17 +353,23 @@ function Multiroids(ctx, width, height){
         bullets: [],
         asteroids: []
     };
+    this.nextAsteroid = asteroidSpawnRate;
     this.qtree = new Quadtree.Quadtree(0, 0, 0, this.width, this.height);
 }
 
 Multiroids.prototype.addShip = function addShip(x, y){
-    this.entities.ships.push(new Ship(x, y, Date.now()));
+    var newShip = new Ship(x, y, Date.now());
+    this.entities.ships.push(newShip);
+    return newShip;
 }
 Multiroids.prototype.addBullet = function addBullet(bullet){
     this.entities.bullets.push(bullet);
 }
 Multiroids.prototype.addAsteroid = function addAsteroid(){
-    this.entities.asteroids.push(new Asteroid(0, 0));
+    this.nextAsteroid = asteroidSpawnRate;
+    this.entities.asteroids.push(
+        new Asteroid(randRange(0, this.width), randRange(0, this.height))
+    );
 }
 Multiroids.prototype.update = function update(){
     this.qtree.clear();
@@ -323,9 +401,7 @@ Multiroids.prototype.update = function update(){
                          if ((currentEntity !== otherEntity) &&
                             (currentEntity.id !== otherEntity.id) && 
                             (currentEntity.detectCollide(otherEntity))){
-                            console.log('collide');
-                            currentEntity.collide = true;
-                            otherEntity.collide = true;
+                            currentEntity.collide(otherEntity);
                          }
                      }
                 }
@@ -348,6 +424,10 @@ Multiroids.prototype.update = function update(){
                 }
             }
         }
+    }
+    this.nextAsteroid -= deltaTime;
+    if (this.nextAsteroid <= 0 && this.entities.asteroids.length < maxAsteroids){
+        this.addAsteroid();
     }
     this.ctx.stroke();
     this.ctx.closePath();
@@ -383,7 +463,7 @@ Multiroids.prototype.start = function start(){
 };
 
 module.exports = Multiroids;
-},{"./entities/asteroid":2,"./entities/bullet":3,"./entities/ship":5,"quadtree":1}],7:[function(_dereq_,module,exports){
+},{"./entities/asteroid":2,"./entities/bullet":3,"./entities/ship":5,"./utilities":8,"quadtree":1}],8:[function(_dereq_,module,exports){
 module.exports.randRange = function randRange(min, max) {
     return min + (Math.random() * ((max - min) + 1));
 };
@@ -412,6 +492,6 @@ if (typeof Object.create === 'function') {
         ctor.prototype.constructor = ctor;
     };
 }
-},{}]},{},[6])
-(6)
+},{}]},{},[7])
+(7)
 });

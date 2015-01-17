@@ -7,7 +7,7 @@ var Quadtree = require('quadtree');
 
 // TODO: move to config file
 var asteroidSpawnRate = 3000;
-var maxAsteroids = 10;
+var maxAsteroids = 1;
 
 function Multiroids(ctx, width, height){
     this.ctx = ctx;
@@ -25,7 +25,9 @@ function Multiroids(ctx, width, height){
 }
 
 Multiroids.prototype.addShip = function addShip(x, y){
-    this.entities.ships.push(new Ship(x, y, Date.now()));
+    var newShip = new Ship(x, y, Date.now());
+    this.entities.ships.push(newShip);
+    return newShip;
 }
 Multiroids.prototype.addBullet = function addBullet(bullet){
     this.entities.bullets.push(bullet);
@@ -66,9 +68,7 @@ Multiroids.prototype.update = function update(){
                          if ((currentEntity !== otherEntity) &&
                             (currentEntity.id !== otherEntity.id) && 
                             (currentEntity.detectCollide(otherEntity))){
-                            console.log('collide');
-                            currentEntity.collide = true;
-                            otherEntity.collide = true;
+                            currentEntity.collide(otherEntity);
                          }
                      }
                 }

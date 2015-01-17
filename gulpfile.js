@@ -6,7 +6,7 @@ gulp.task('build-client', function() {
     gulp.src('./src/client.js')
         .pipe(browserify({
           standalone: 'multiroids-client.js',
-          debug : !gulp.env.production
+          debug : false
         }))
         .pipe(gulp.dest('./build'));
 });

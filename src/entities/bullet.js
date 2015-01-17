@@ -21,11 +21,10 @@ Bullet.baseSpeed = 1;
 Bullet.prototype.update = function update(timeDelta){
     this.move();
     this.life -= timeDelta;
-    if (this.life < 0){
-        return true;
-    } else {
-        return false;
+    if (this.life <= 0){
+        this.destruct = true;
     }
+    return this.destruct;
 }
 
 module.exports = Bullet;

@@ -11,6 +11,7 @@ function Entity(x, y, velX, velY, radius){
     this.velY = velY;
     this.radius = radius;
     this.angle = 0;
+    this.destruct = false;
 }
 /**
  * Move entity
@@ -23,11 +24,14 @@ Entity.prototype.move = function move(){
  * Update entity
  */
 Entity.prototype.update = function update(){
-    return false;
+    return this.destruct;
 };
 Entity.prototype.detectCollide = function detectCollide(otherEntity){
     return (Math.pow(otherEntity.x - this.x, 2) + Math.pow(this.y - otherEntity.y, 2) <= 
                         Math.pow(this.radius + otherEntity.radius, 2));
+};
+Entity.prototype.collide = function collide(otherEntity){
+    this.destruct = true;
 };
 /**
  * Draw entity to the given context

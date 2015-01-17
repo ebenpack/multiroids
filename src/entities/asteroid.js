@@ -12,12 +12,19 @@ function Asteroid(x, y){
     var radius = util.randRange(10, 14);
     Entity.call(this, x, y, velX, velY, radius);
     this.id = 'asteroid';
+    this.health = 10;
 }
 util.inherits(Asteroid, Entity);
 
 
 Asteroid.prototype.update = function update(){
     this.move();
+    return this.destruct;
 };
-
+Asteroid.prototype.collide = function collide(otherEntity){
+    this.health -= 2;
+    if (this.health <= 0){
+        this.destruct = true;
+    }
+};
 module.exports = Asteroid;

@@ -1,5 +1,6 @@
 var Entity = require('./entity');
 var Bullet = require('./bullet.js');
+var EventHandler = require('../events/events.js');
 var util = require('../utilities');
 
 var turnSpeed = 0.08;
@@ -20,6 +21,8 @@ function Ship(x, y, id){
     this.lastFired = 0;
     this.fireRate = 400;
     this.id = id;
+    this.score = 0;
+    this.evnt = new EventHandler();
 }
 
 util.inherits(Ship, Entity);
@@ -46,6 +49,10 @@ Ship.prototype.fire = function fire(){
         return new Bullet(x, y, velX, velY, this.id);
     }
 };
+Ship.prototype.collide = function(){
+    this.score -= 1;
+    this.evnt.fire('collide');
+}
 Ship.prototype.update = function update(deltaTime){
     this.acceleration *= damping;
     this.velX *= damping;
@@ -53,7 +60,6 @@ Ship.prototype.update = function update(deltaTime){
     this.x = this.x + this.velX;
     this.y = this.y + this.velY;
     return false;
-    // If hit, destruct
 };
 Ship.prototype.draw = function draw(ctx){
     var x = this.x;
