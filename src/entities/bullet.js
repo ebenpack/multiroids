@@ -25,6 +25,6 @@ Bullet.prototype.update = function update(timeDelta){
         this.destruct = true;
     }
     return this.destruct;
-}
+};
 
 module.exports = Bullet;

@@ -5,7 +5,7 @@
     <title></title>
 </head>
 <body>
-    <canvas id="canvas" width="300" height="300" style="border: 1px solid black;"></canvas>
+    <canvas id="canvas" width="800" height="600" style="border: 1px solid black;"></canvas>
     <div id="score">Score: 0</div>
     <script src="build/multiroids.js"></script>
     <!--script src="//localhost:8082/socket.io/socket.io.js"></script-->
@@ -23,7 +23,7 @@
         var height = canvas.height;
         ctx.strokeStyle = 'black';
 
-        var game = new Multiroids(ctx, 300, 300);
+        var game = new Multiroids(ctx, width, height);
 
         var ship = game.addShip(Math.floor(width / 2), Math.floor(height / 2));
         ship.evnt.on('collide', function(){

@@ -13,7 +13,7 @@ function Multiroids(ctx, width, height){
     this.ctx = ctx;
     this.width = width;
     this.height = height;
-    this.lastUpdate = Date.now()
+    this.lastUpdate = Date.now();
     this.keys = {};
     this.entities = {
         ships: [],
@@ -28,20 +28,20 @@ Multiroids.prototype.addShip = function addShip(x, y){
     var newShip = new Ship(x, y, Date.now());
     this.entities.ships.push(newShip);
     return newShip;
-}
+};
 Multiroids.prototype.addBullet = function addBullet(bullet){
     this.entities.bullets.push(bullet);
-}
+};
 Multiroids.prototype.addAsteroid = function addAsteroid(){
     this.nextAsteroid = asteroidSpawnRate;
     this.entities.asteroids.push(
         new Asteroid(randRange(0, this.width), randRange(0, this.height))
     );
-}
+};
 Multiroids.prototype.update = function update(){
     this.qtree.clear();
-    this.ctx.clearRect(0, 0, 300, 300)
-    var now = Date.now()
+    this.ctx.clearRect(0, 0, this.width, this.height);
+    var now = Date.now();
     var deltaTime =  now - this.lastUpdate;
     this.lastUpdate = now;
     var entities = this.entities;
@@ -62,9 +62,9 @@ Multiroids.prototype.update = function update(){
                 var currentEntity = entities[entity][i];
                 var destruct = currentEntity.update(deltaTime);
                 if (!destruct){
-                    var possible_collides = this.qtree.retrieve(currentEntity);
-                    for (var k = 0; k < possible_collides.length; k++){
-                         var otherEntity = possible_collides[k];
+                    var possibleCollides = this.qtree.retrieve(currentEntity);
+                    for (var k = 0; k < possibleCollides.length; k++){
+                         var otherEntity = possibleCollides[k];
                          if ((currentEntity !== otherEntity) &&
                             (currentEntity.id !== otherEntity.id) && 
                             (currentEntity.detectCollide(otherEntity))){
@@ -99,15 +99,16 @@ Multiroids.prototype.update = function update(){
     this.ctx.stroke();
     this.ctx.closePath();
     requestAnimationFrame(this.update.bind(this));
-}
+};
 Multiroids.prototype.handleEvents = function handleEvents(){
-    var now = Date.now();
-    var ship = this.entities['ships'][0];
+    var ship = this.entities.ships[0];
     if (this.keys[37]){
         ship.turnLeft();
     }
     if (this.keys[38]){
         ship.engageThrusters();
+    } else {
+        ship.disengageThrusters();
     }
     if (this.keys[39]){
         ship.turnRight();
