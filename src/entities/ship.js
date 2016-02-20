@@ -7,6 +7,11 @@ var turnSpeed = 0.08;
 var accelerationAmount = 0.2;
 var damping = 0.97;
 
+var PI = Math.PI;
+var sevenPI = 7 * PI;
+var sevenPIover6 = sevenPI / 6;
+var fivePIover6 = (5 * PI) / 6;
+
 /**
  * Ship entity``~
  * @param {number} x x position
@@ -70,20 +75,22 @@ Ship.prototype.draw = function draw(ctx) {
     var x = this.x;
     var y = this.y;
     var angle = this.angle;
+    var angle7PI = angle + sevenPI;
+    var angle7PIover6 = angle + sevenPIover6;
+    var angle5PIover6 = angle + fivePIover6;
     var radius = this.radius;
-    var PI = Math.PI;
     // Nose
     var x1 = x + (Math.cos(angle) * radius);
     var y1 = y + (Math.sin(angle) * radius);
     // Back left(??)
-    var x2 = x + (Math.cos(angle + ((7 * PI) / 6)) * radius);
-    var y2 = y + (Math.sin(angle + ((7 * PI) / 6)) * radius);
+    var x2 = x + (Math.cos(angle7PIover6) * radius);
+    var y2 = y + (Math.sin(angle7PIover6) * radius);
     // Back right(??)
-    var x3 = x + (Math.cos(angle + (7 * PI)) * (radius / 2));
-    var y3 = y + (Math.sin(angle + (7 * PI)) * (radius / 2));
+    var x3 = x + (Math.cos(angle7PI) * (radius / 2));
+    var y3 = y + (Math.sin(angle7PI) * (radius / 2));
     // Back center(??)
-    var x4 = x + (Math.cos(angle + ((5 * PI) / 6)) * radius);
-    var y4 = y + (Math.sin(angle + ((5 * PI) / 6)) * radius);
+    var x4 = x + (Math.cos(angle5PIover6) * radius);
+    var y4 = y + (Math.sin(angle5PIover6) * radius);
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
     ctx.lineTo(x3, y3);
